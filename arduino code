@@ -1,0 +1,89 @@
+#include <LiquidCrystal.h>
+
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+
+int redPin = 9;     // Red LED pin
+int greenPin = 10;  // Green LED pin
+int bluePin = 13;   // Blue LED pin
+
+void setup() {
+  Serial.begin(9600);
+  lcd.begin(16, 2);
+  pinMode(6, INPUT);
+  pinMode(redPin, OUTPUT);
+  pinMode(greenPin, OUTPUT);
+  pinMode(bluePin, OUTPUT);
+  
+  // Set the pinMode for sensor pins in the setup() function.
+  pinMode(14, INPUT);
+  pinMode(A1, INPUT);
+  pinMode(2, INPUT);
+  pinMode(3, INPUT);
+}
+
+void loop() {
+  // Read temperature
+  int temp = analogRead(14);
+  float voltage = temp * 5.0 / 1024.0;
+  float temperatureC = (voltage - 0.5) * 100.0;
+
+  // Read EC
+  int elConductivity = analogRead(A1);
+  float ec = map(elConductivity, 0, 1023, 0, 2000);
+
+  // Read TDS
+  int Turb1 = analogRead(2);
+  float Turb = map(Turb1, 0, 1023, 0, 10);
+
+  // Read pH
+  int PH = analogRead(3);
+  float PH1 = map(PH, 0, 1023, 0, 14);
+
+  Serial.print("Temperature: ");
+  Serial.println(temperatureC);
+  Serial.print("EC: ");
+  Serial.println(ec);
+  Serial.print("Turbidity: ");
+  Serial.println(Turb);
+  Serial.print("pH: ");
+  Serial.println(PH1);
+
+  int dis = digitalRead(6);
+
+
+  if (ec >= 30 && ec <= 1500 && Turb <= 5 && (PH1 >= 6.5 && PH1 <= 8.5) && (temperatureC >= 4 && temperatureC <= 25)) {
+    setColor(0, 255, 0);  // Green color (safe)
+  } 
+  else {
+    setColor(255, 0, 0);  // Red color (dangerous)
+    delay(1000);
+  }
+
+  lcd.clear();
+  lcd.setCursor(1, 0);
+  lcd.print("TEMP: ");
+  lcd.print(temperatureC);
+  delay(1000);
+  lcd.clear();
+  lcd.setCursor(1, 0);
+  lcd.print("EC: ");
+  lcd.print(ec);
+  delay(1000);
+  lcd.clear();
+  lcd.setCursor(1, 0);
+  lcd.print("Turbidity: ");
+  lcd.print(Turb);
+  delay(1000);
+  lcd.clear();
+  lcd.setCursor(1, 0);
+  lcd.print("pH: ");
+  lcd.print(PH1);
+  delay(1000);
+  lcd.clear();
+}
+
+void setColor(int redValue, int greenValue, int blueValue) {
+  analogWrite(redPin, redValue);
+  analogWrite(greenPin, greenValue);
+  analogWrite(bluePin, blueValue);
+}
